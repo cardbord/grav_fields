@@ -55,14 +55,14 @@ class body():
      
      @property
      def converted_x(self):
-          return self.pos[0]//(10**9)+1280
+          return self.pos[0]//(10**9)+_main_dis[0]//2
 
 
 
 
      @property
      def converted_y(self):
-          return self.pos[1]//(10**9)+720
+          return self.pos[1]//(10**9)+_main_dis[1]//2
      
      
 
@@ -71,11 +71,11 @@ class body():
      
 sun = body(6.96*10**8, 1.99*10**30 , (0,0))
 earth = body(6.37*10**6, 5.97*10**24, (1.3747*10**11, 1*10**10))
-
+mars = body(3.34*10**6,6.39*10**23,(2.28*10**11,0))
 
 
 framerate=60
-bodies = [sun,earth]
+bodies = [sun,earth,mars]
 body_masses = []
 clock=pygame.time.Clock()
 while 1:
@@ -110,7 +110,7 @@ while 1:
                     obb = bodies[i]
                     m = bbb.m
                     
-
+                    #assumed bbb is dominant over obb
                     
 
                     distance_between = sqrt((obb.x - bbb.x)**2 + (obb.y - bbb.y)**2)
@@ -131,17 +131,17 @@ while 1:
                          angle = atan(abs(cy) / abs(cx))
                          
 
-                         hgh = 0
+                         
 
                          if obb.x > bbb.x:
                               vert_v = v*cos(angle)
-                              hgh = a*DAY
+                              
                               
 
 
                          else:
                               vert_v = -v*cos(angle)
-                              hgh = -a*DAY
+                              
                               
                               
                          
@@ -156,7 +156,21 @@ while 1:
                               horz_v = v*sin(angle)
 
                               
+                         if obb.x > bbb.x and obb.y > bbb.y:
+                              horz_v += a*cos(angle) * DAY // 2
+                              vert_v += a*sin(angle) * DAY // 2
+                              
+                         elif obb.x < bbb.x and obb.y > bbb.y:
+                              horz_v -= a*cos(angle) * DAY // 2
+                              vert_v += a*sin(angle) * DAY // 2
                          
+                         elif obb.x < bbb.x and obb.y < bbb.y:
+                              horz_v -= a*cos(angle) * DAY // 2
+                              vert_v -= a*sin(angle) * DAY // 2
+                              
+                         elif obb.x > bbb.x and obb.y < bbb.y:
+                              horz_v += a*cos(angle) * DAY // 2
+                              vert_v -= a*sin(angle) * DAY // 2
 
                          
 
@@ -166,7 +180,7 @@ while 1:
                          obb.pos = [obb.x-DAY*obb.horz_v, obb.y-DAY*obb.vert_v]
 
                          if framerate == 10:
-                              print(f'obb>bbb x {obb.x > bbb.x},   obb>bbb y {obb.x > bbb.y},   a {a},   a*DAY = {hgh}')
+                              print(f'obb>bbb x {obb.x > bbb.x},   obb>bbb y {obb.x > bbb.y},   a {a},   a*DAY = {a*DAY},   horz_v = {horz_v},   vert_v = {vert_v}')
                          
 
 

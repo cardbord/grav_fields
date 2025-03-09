@@ -1,7 +1,7 @@
 import pygame
-from math import sqrt, sin, cos, tan, atan, pi
-
-
+from math import sqrt, sin, cos, atan, log10, log, log2
+from pygame.gfxdraw import filled_circle, aacircle
+import numpy as np
 
 pygame.init()
 pygame.display.init()
@@ -18,6 +18,16 @@ G = 6.67*10**(-11)
 DAY = 86400
 MINUTE = 60
 HOUR = 3600
+
+
+def logn(value):
+     if value < 0:
+          return log(abs(value)) * -1
+     elif value == 0:
+          return 0
+     else:
+          return log(value)
+
 class body():
      def __init__(self, body_radius:int, body_mass:int, initial_pos:tuple=None, initial_velocity:float = None):
           self.m = body_mass
@@ -30,7 +40,7 @@ class body():
           self.horz_v = 0
           self.vert_v = 0
           self.sv = 0
-
+          self.scale = 9
           
 
      @property
@@ -55,28 +65,51 @@ class body():
      
      @property
      def converted_x(self):
-          return self.pos[0]//(10**9)+_main_dis[0]//2
-
-
+          return self.pos[0]//(10**self.scale)+_main_dis[0]//2
+          #print(logn(self.pos[0]))
+          #return logn(self.pos[0])*self.scale + _main_dis[0]//2
 
 
      @property
      def converted_y(self):
-          return self.pos[1]//(10**9)+_main_dis[1]//2
+          return self.pos[1]//(10**self.scale)+_main_dis[1]//2
+
+          #return logn(self.pos[1])*self.scale + _main_dis[1]//2
      
-     
+     def change_scale(self,new_scale):
+          self.scale+=new_scale
 
 
-
+#SOLAR SYSTEM INITS
      
-sun = body(6.96*10**8, 1.99*10**30 , (0,0))
-earth = body(6.37*10**6, 5.97*10**24, (1.3747*10**11, 1*10**10))
-mars = body(3.34*10**6,6.39*10**23,(2.28*10**11,0))
+SUN = body(6.96*10**8, 1.99*10**30 , (0,0))
+
+MERCURY = body(2439700,3.29*10**23, (0.1, 5.7909*10**10))
+
+VENUS = body(6.051*10**6, 4.87*10**24, (0.1,1.082*10**11))
+
+EARTH = body(6.37*10**6, 5.97*10**24, (0.1, 1.496*10**11))
+MOON = body(1737400,7.348*10**22,(0.1,1.496*10**11+3.844*10**8))
+
+MARS = body(3.34*10**6,6.39*10**23,(0.1,2.28*10**11))
+
+JUPITER = body(6.99*10**7,1.898*10**27,(0.1,7.784*10**11))
+
+SATURN = body(5.823*10**7, 5.683*10**26, (0.1,1.4236*10**12))
+
+URANUS = body(2.536*10**7, 8.681*10**25, (0.1,2.867*10**12))
+
+NEPTUNE = body(2.462*10**7, 1.024*10**26, (0.1,4.884*10**12))
+
 
 
 framerate=60
-bodies = [sun,earth,mars]
+bodies = [SUN,MERCURY,VENUS,EARTH,MOON,MARS,JUPITER,SATURN,URANUS,NEPTUNE]
 body_masses = []
+
+
+
+
 clock=pygame.time.Clock()
 while 1:
      dis.fill((0,0,0))
@@ -100,6 +133,14 @@ while 1:
                     else:
                          framerate = 200
 
+               
+
+          elif event.type == pygame.MOUSEWHEEL:
+               for b in bodies:
+                    if b.scale > 8.2 or event.y == -1:
+                         b.change_scale(-event.y/100)
+                         b.scale = round(b.scale,4)
+                         print(b.scale)
 
      for i in range(len(bodies)):
           for j in range(len(bodies)):
@@ -125,7 +166,6 @@ while 1:
                          cy = obb.y - bbb.y
                          cx = obb.x - bbb.x
 
-                         
                          
                          
                          angle = atan(abs(cy) / abs(cx))
@@ -157,20 +197,20 @@ while 1:
 
                               
                          if obb.x > bbb.x and obb.y > bbb.y:
-                              horz_v += a*cos(angle) * DAY // 2
-                              vert_v += a*sin(angle) * DAY // 2
+                              horz_v += a*cos(angle) * DAY / 2
+                              vert_v += a*sin(angle) * DAY / 2
                               
                          elif obb.x < bbb.x and obb.y > bbb.y:
-                              horz_v -= a*cos(angle) * DAY // 2
-                              vert_v += a*sin(angle) * DAY // 2
+                              horz_v -= a*cos(angle) * DAY / 2
+                              vert_v += a*sin(angle) * DAY / 2
                          
                          elif obb.x < bbb.x and obb.y < bbb.y:
-                              horz_v -= a*cos(angle) * DAY // 2
-                              vert_v -= a*sin(angle) * DAY // 2
+                              horz_v -= a*cos(angle) * DAY / 2
+                              vert_v -= a*sin(angle) * DAY / 2
                               
                          elif obb.x > bbb.x and obb.y < bbb.y:
-                              horz_v += a*cos(angle) * DAY // 2
-                              vert_v -= a*sin(angle) * DAY // 2
+                              horz_v += a*cos(angle) * DAY / 2
+                              vert_v -= a*sin(angle) * DAY / 2
 
                          
 
@@ -183,11 +223,22 @@ while 1:
                               print(f'obb>bbb x {obb.x > bbb.x},   obb>bbb y {obb.x > bbb.y},   a {a},   a*DAY = {a*DAY},   horz_v = {horz_v},   vert_v = {vert_v}')
                          
 
-
+     rarr = []
      for body in bodies:
+
+
+          #br = log(body.radius) 
+          #lr = log(10**(body.scale-7))
           
-               
-               
-          pygame.draw.circle(dis,(255,0,0),(body.converted_x,body.converted_y),5)
+          #hh = br / lr
+          #g = round(hh)
+          
+          
+          #pygame.draw.circle(dis,(255,0,0),(body.converted_x,body.converted_y),log(body.radius,body.scale))
+          #filled_circle(dis,int(round(body.converted_x)),int(round(body.converted_y)),g-3,(255,0,0))
+          #aacircle(dis,int(round(body.converted_x)),int(round(body.converted_y)),g-3,(255,0,0))
+          filled_circle(dis,int(round(body.converted_x)),int(round(body.converted_y)),3,(255,0,0))
+          aacircle(dis,int(round(body.converted_x)),int(round(body.converted_y)),3,(255,0,0))
+
 
      pygame.display.update()
